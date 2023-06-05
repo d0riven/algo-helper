@@ -10,7 +10,7 @@ export class Card {
         public readonly number: number,
         public readonly color: CardColor
     ) {
-        if (number > 12 || number < 0) {
+        if (number < 0 || number > 11) {
             throw new Error('illegal card number')
         }
     }
@@ -20,10 +20,6 @@ export class Card {
     }
 
     get textColor(): string {
-        return `${this.color}`
-    }
-
-    get bgColor(): string {
         switch (this.color) {
             case CardColor.black:
                 return `white`
@@ -32,10 +28,47 @@ export class Card {
         }
     }
 
+    get bgColor(): string {
+        return `${this.color}`
+    }
+
     get border(): string {
         return `solid 1px ${this.textColor}`
     }
 }
+
+export class UnknownCard {
+    constructor(
+        public readonly color: CardColor
+    ) {}
+
+    get textColor(): string {
+        switch (this.color) {
+            case CardColor.black:
+                return `white`
+            case CardColor.white:
+                return `black`
+        }
+    }
+
+    get bgColor(): string {
+        return `${this.color}`
+    }
+
+    get border(): string {
+        let lineColor: string
+        switch (this.color) {
+            case CardColor.black:
+                lineColor = "white"
+                break
+            case CardColor.white:
+                lineColor = "black"
+                break
+        }
+        return `solid 1px ${this.textColor}`
+    }
+}
+
 
 export class MyHand {
     private cards: Card[]
@@ -43,7 +76,7 @@ export class MyHand {
         this.cards = cards
     }
 
-    get sortedCard(): Card[] {
+    get sortedCards(): Card[] {
         return this.cards.concat().sort((a, b) => {
             if (a.number < b.number) {
                 return -1
@@ -60,3 +93,7 @@ export class MyHand {
     }
 }
 
+export class OtherHand {
+    constructor(public readonly cards: Array<Card|UnknownCard>) {
+    }
+}
