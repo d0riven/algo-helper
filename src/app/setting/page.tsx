@@ -16,10 +16,12 @@ export default function Setting() {
 
     const undefinedNumber = '?'
 
+    const [selectNumber, setSelectNumber] = useState<number | null>(null)
+    const [selectColor, setSelectColor] = useState<string>(CardColor.black)
     const [currentOrder , setCurrentOrder] = useState<number>(1)
     const [myHandCards, setMyHandCards] = useState<Array<Card>>([])
     const [otherHandCards, setOtherHandCards] = useState<Array<UnknownCard>>([])
-    const [otherPlayersHandCards, setOtherPlayersHandCards] = useState<Array<Array<UnknownCard>>>(new Array([]))
+    const [otherPlayersHandCards, setOtherPlayersHandCards] = useState<Array<Array<UnknownCard>>>(new Array<Array<UnknownCard>>())
     const [blackSelectedNumber, setBlackSelectedNumber] = useState<Array<number>>([])
     const [whiteSelectedNumber, setWhiteSelectedNumber] = useState<Array<number>>([])
 
@@ -29,24 +31,68 @@ export default function Setting() {
         setWhiteSelectedNumber([])
     }
 
-    // すでに選択済みの 色 * カード番号 を除外したselect項目を生成する
-    const generateSelectNumber = (): ReactNode[] => {
-        let numbers = CARD_NUMBERS.filter(v => {
-            switch (selectColor) {
-                case CardColor.black:
-                    return !blackSelectedNumber.includes(v)
-                case CardColor.white:
-                    return !whiteSelectedNumber.includes(v)
+    const generateDisplayAllCards = (): ReactNode[] => {
+        let nodes = Array<ReactNode>()
+        let playersHandCards = otherPlayersHandCards.concat()
+        console.log('otherPlayerHandCards', otherPlayersHandCards)
+        console.log('playerHandCards', playersHandCards)
+        for (let i = 1; i <= playerAmount; i++) {
+            if (myOrder == i) {
+                const myHand = new MyHand(myHandCards)
+                const node = (
+                    <div>
+                        <label>わたし</label>
+                        {myHand.sortedCards.map((v) => (
+                            <span
+                                key={v.key}
+                                style={{
+                                    color: v.textColor,
+                                    backgroundColor: v.bgColor,
+                                    border: v.border,
+                                }}
+                            >{v.number}</span>
+                        ))}
+                    </div>
+                )
+                nodes.push(node)
+                continue
             }
-        })
-        let nodes = numbers.map((v): ReactNode => {
-            return (<option key={v} value={v}>{v}</option>)
-        })
-        nodes.unshift(<option key={'undefined'}>{undefinedNumber}</option>)
+
+            const otherCards = playersHandCards.shift()!!
+            console.log('otherCards', otherCards)
+            const otherHand = new OtherHand(otherCards)
+            const node = (
+                <div>
+                    <label>Player {i}</label>
+                    {otherHand.cards.map((v, j) => (
+                        <span
+                            key={`${i}:${j}`}
+                            style={{
+                                color: v.textColor,
+                                backgroundColor: v.bgColor,
+                                border: v.border,
+                            }}
+                        >{undefinedNumber}</span>
+                    ))}
+                </div>
+            )
+            nodes.push(node)
+        }
         return nodes
     }
 
-    const [selectNumber, setSelectNumber] = useState<number | null>(null)
+    if (currentOrder > playerAmount) {
+        // TODO: ここに入力したカード情報を表示させて、次の画面へのボタンを表示
+        return (
+            <>
+                <p>player amount: {playerAmount}</p>
+                <p>my order: {myOrder}</p>
+                <p>current order: {currentOrder}</p>
+                {generateDisplayAllCards()}
+            </>
+        )
+    }
+
     const handleSelectNumber = (e: ChangeEvent<HTMLSelectElement>) => {
         const v = e.target.value
         if (v == undefinedNumber) {
@@ -55,7 +101,6 @@ export default function Setting() {
         setSelectNumber(parseInt(v))
     }
 
-    const [selectColor, setSelectColor] = useState<string>(CardColor.black)
     const handleSelectColor = (e: ChangeEvent<HTMLSelectElement>) => {
         switch (e.target.value) {
             case CardColor.black:
@@ -93,6 +138,24 @@ export default function Setting() {
         }
     }
 
+    // すでに選択済みの 色 * カード番号 を除外したselect項目を生成する
+    const generateSelectNumber = (): ReactNode[] => {
+        let numbers = CARD_NUMBERS.filter(v => {
+            switch (selectColor) {
+                case CardColor.black:
+                    return !blackSelectedNumber.includes(v)
+                case CardColor.white:
+                    return !whiteSelectedNumber.includes(v)
+            }
+        })
+        let nodes = numbers.map((v): ReactNode => {
+            return (<option key={v} value={v}>{v}</option>)
+        })
+        nodes.unshift(<option key={'undefined'}>{undefinedNumber}</option>)
+        return nodes
+    }
+
+
     const generateMyHandCards = () => {
         const myHand = new MyHand(myHandCards)
         return myHand.sortedCards.map((v) => {
@@ -108,17 +171,6 @@ export default function Setting() {
                 }}
             >{v.number}</span>)
         })
-    }
-
-    if (currentOrder > playerAmount) {
-        // TODO: ここに入力したカード情報を表示させて、次の画面へのボタンを表示
-        return (
-            <>
-                <p>player amount: {playerAmount}</p>
-                <p>my order: {myOrder}</p>
-                <p>current order: {currentOrder}</p>
-            </>
-        )
     }
 
     // my hand input
@@ -178,9 +230,12 @@ export default function Setting() {
         setOtherHandCards(nextOtherHand)
 
         if (nextOtherHand.length >= 4) {
+            const nextOtherPlayersHandCards = [...otherPlayersHandCards, nextOtherHand]
+
             nextPlayerSetting()
             setOtherHandCards([])
-            setOtherPlayersHandCards(otherPlayersHandCards.concat(nextOtherHand))
+            setOtherPlayersHandCards(nextOtherPlayersHandCards)
+            console.log('nextOtherPlayersHandCards', nextOtherPlayersHandCards)
         }
     }
 
