@@ -1,5 +1,7 @@
 import {text} from "stream/consumers";
 
+export const UndefinedNumber = '?'
+
 export enum CardColor {
     black = 'black',
     white = 'white',

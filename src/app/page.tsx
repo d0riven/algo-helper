@@ -1,15 +1,13 @@
 'use client';
 
-import Image from 'next/image'
 import React, {useContext, useState} from 'react';
 import {Simulate} from "react-dom/test-utils";
-import play = Simulate.play;
 import {useRouter} from "next/navigation";
 import {GlobalContext} from "@/state/global";
 
 export default function Top() {
   const [playerAmount, setPlayerAmount] = useState<number>(2);
-  const [myOrder, setMyOrder] = useState<number|null>(null);
+  const [myOrder, setMyOrder] = useState<number>(1);
   const router = useRouter();
   const global = useContext(GlobalContext);
 
@@ -37,9 +35,9 @@ export default function Top() {
   }
 
   const handleStart = () => {
-    global.gameSetting.playerAmount = playerAmount;
-    global.gameSetting.myOrder = myOrder;
-    router.push('/setting');
+    global.gameSetting.setPlayerAmount(playerAmount);
+    global.gameSetting.setMyOrder(myOrder);
+    router.push('/setting/hand/my');
   }
 
   return (
